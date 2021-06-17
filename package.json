@@ -1,0 +1,10 @@
+{
+  "name": "zstat",
+  "version": "0.0.0",
+  "license": "GPLv3",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ]
+}
