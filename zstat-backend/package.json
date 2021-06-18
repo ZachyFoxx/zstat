@@ -7,7 +7,7 @@
 		"SkyezerFox <actuallyori@gmail.com>",
 		"ZachyFoxx <zachery@foxboy.sh>"
 	],
-	"license": "GPLv3",
+	"license": "GPL-3.0-or-later",
 	"scripts": {
 		"start": "ts-node-dev --respawn src",
 		"prepublish": "npx prisma generate"

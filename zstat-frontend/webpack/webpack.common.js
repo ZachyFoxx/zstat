@@ -3,7 +3,10 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
 	resolve: {
-		extensions: [".ts", ".tsx"],
+		extensions: [".ts", ".tsx", ".js"],
+		alias: {
+			"react-dom": "@hot-loader/react-dom",
+		},
 	},
 	context: resolve(__dirname, "../src"),
 	module: {
