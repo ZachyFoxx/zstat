@@ -1,9 +1,10 @@
-import { WithPrismaServer } from "./prisma-server";
+import "reflect-metadata";
 
-// Define your server class.
-// We need to parse in your class type as a parameter to get
-// correct return types when calling inline methods.
-class MyServer extends WithPrismaServer<MyServer> {}
+import { config } from "dotenv";
 
-// Create the server and start listening.
-new MyServer({ port: 8080, level: "silly" }).useDefaultMiddleware().listen();
+import { ZstatServer } from "./ZstatServer";
+
+// load environment configuration
+config();
+
+new ZstatServer().listen();

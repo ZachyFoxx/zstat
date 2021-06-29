@@ -1,8 +1,6 @@
 {
-	"compilerOptions": {
-		"target": "ESNext",
-		"module": "CommonJS",
-		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true
-	}
+	"references": [{ "path": "./zstat-backend" }, { "path": "./zstat-frontend" }, { "path": "./zstat-types" }],
+	"include": [],
+	"files": [],
+	"exclude": ["**/node_modules"]
 }

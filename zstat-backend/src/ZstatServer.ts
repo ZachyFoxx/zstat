@@ -1,13 +1,15 @@
+import { ApolloServer } from "apollo-server-express";
 import express from "express";
 import { createServer } from "http";
+import { buildSchema } from "type-graphql";
 import { createLogger, Logger } from "winston";
 import { Console } from "winston/lib/winston/transports";
 
-import {
-    defaultNotFoundHandler, MiddlewareHandler as ServerHandler, useHelmet, useJsonBodyParsing,
-    useMorgan
-} from "./middleware";
-import { Partional } from "./types";
+import { resolvers } from "@generated/type-graphql";
+import { PrismaClient } from "@prisma/client";
+import { Partional } from "@zstat/types";
+
+import { DEFAULT_MIDDLEWARE, defaultNotFoundHandler } from "./middleware";
 
 /**
  * An interface of available server options.
@@ -15,6 +17,7 @@ import { Partional } from "./types";
 export interface ServerOptions {
 	level: string;
 	port: number;
+	enablePlayground: boolean;
 }
 
 /**
@@ -23,12 +26,13 @@ export interface ServerOptions {
 export const DEFAULT_OPTIONS: ServerOptions = {
 	port: 8080,
 	level: "http",
+	enablePlayground: false,
 };
 
 /**
  * A generic HTTP server implementation.
  */
-export class Server<T extends Server<T>> {
+export class ZstatServer {
 	/**
 	 * The server options. Used when creating the HTTP listener.
 	 */
@@ -45,11 +49,14 @@ export class Server<T extends Server<T>> {
 	readonly http = createServer(this.express);
 
 	/**
+	 * The prisma database backend.
+	 */
+	readonly prisma = new PrismaClient();
+
+	/**
 	 * The winston logger used for logging to console.
 	 */
 	readonly logger: Logger;
-
-	readonly beforeListenHandlers: ServerHandler<T>[] = [];
 
 	constructor(options: Partional<ServerOptions>) {
 		// configure default options.
@@ -59,43 +66,45 @@ export class Server<T extends Server<T>> {
 	}
 
 	/**
-	 * Add a method to run before the server starts listening.
-	 * @param handlers An array of handlers to run before the server starts listening
-	 */
-	beforeListen(...handlers: ServerHandler<T>[]) {
-		this.beforeListenHandlers.push(...handlers);
-		return this;
-	}
-
-	/**
-	 * Add middleware to this server.
-	 * @param handler The middleware adder to run.
-	 */
-	addMiddleware(...handlers: ServerHandler<T>[]) {
-		// iterate over handlers an execute
-		handlers.forEach((v) => v(this as unknown as T));
-		return this;
-	}
-
-	/**
 	 * Set up the express application, plus any extra middleware.
 	 */
 	useDefaultMiddleware() {
 		// add middleware
-		this.addMiddleware(useMorgan, useHelmet, useJsonBodyParsing);
+		DEFAULT_MIDDLEWARE.forEach((v) => v(this));
 		return this;
+	}
+
+	/**
+	 * Set up the prisma database backend.
+	 */
+	async setupPrisma() {
+		this.logger.verbose("Setting up Prisma database...");
+		// connect to database
+		await this.prisma.$connect();
+		// build the schema
+		this.logger.debug("Building GraphQL schema...");
+		const schema = await buildSchema({
+			resolvers,
+			validate: false,
+		});
+		// create the apollo server
+		this.logger.debug("Attaching GraphQL middleware...");
+		const server = new ApolloServer({
+			schema,
+			playground: this.options.enablePlayground,
+			introspection: this.options.enablePlayground,
+			// declare prisma as context
+			context: () => ({ prisma: this.prisma }),
+		});
+		server.applyMiddleware({ app: this.express });
 	}
 
 	/**
 	 * Start the server listening on the target port.
 	 */
 	async listen() {
-		// override listen handlers.
-		for (const handler of this.beforeListenHandlers) {
-			await handler(this as unknown as T);
-		}
 		// add default not found handler
-		this.addMiddleware(defaultNotFoundHandler);
+		defaultNotFoundHandler(this);
 
 		// start listening on port specified in options.
 		this.logger.info("Listening on port " + this.options.port);

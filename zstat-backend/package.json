@@ -9,17 +9,20 @@
 	],
 	"license": "GPL-3.0-or-later",
 	"scripts": {
-		"start": "ts-node-dev --respawn src",
-		"prepublish": "npx prisma generate"
+		"prepare": "npx prisma generate",
+		"build": "tsc -b",
+		"start": "node dist",
+		"dev": "ts-node-dev --respawn src"
 	},
 	"engines": {
-		"node": ">=16"
+		"node": ">=14"
 	},
 	"dependencies": {
-		"@prisma/client": "^2.25.0",
+		"@prisma/client": "2.25.0",
 		"apollo-server": "^2.25.1",
 		"apollo-server-express": "^2.25.1",
 		"class-validator": "^0.13.1",
+		"dotenv": "^10.0.0",
 		"express": "^4.17.1",
 		"graphql": "^15.5.0",
 		"graphql-fields": "^2.0.3",
@@ -39,7 +42,7 @@
 		"@typescript-eslint/parser": "^4.27.0",
 		"eslint": "^7.28.0",
 		"prettier": "^2.3.1",
-		"prisma": "^2.25.0",
+		"prisma": "2.25.0",
 		"ts-node": "^10.0.0",
 		"ts-node-dev": "^1.1.6",
 		"typegraphql-prisma": "^0.14.4",

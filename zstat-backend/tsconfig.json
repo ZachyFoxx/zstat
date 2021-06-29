@@ -1,8 +1,9 @@
 {
-    "compilerOptions": {
-        "target": "ESNext",
-        "module": "CommonJS",
-        "allowSyntheticDefaultImports": true,
-        "esModuleInterop": true
-    }
+	"extends": "../tsconfig.base.json",
+	"compilerOptions": {
+		"outDir": "dist",
+		"rootDir": "src"
+	},
+	"references": [{ "path": "../zstat-types" }],
+	"include": ["src"]
 }
